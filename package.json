@@ -1,0 +1,26 @@
+{
+  "name": "openvr2ws-client",
+  "version": "0.0.1-alpha.4",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node dist/test.js"
+  },
+  "keywords": [],
+  "author": "Jeppe Vinkel Beier <jeppevinkel@gmail.com> (https://jeppdev.com/)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.12.11",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@types/ws": "^8.5.10",
+    "isomorphic-ws": "^5.0.0",
+    "ws": "^8.17.0"
+  }
+}
