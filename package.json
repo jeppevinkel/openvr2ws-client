@@ -13,6 +13,7 @@
   },
   "keywords": [],
   "author": "Jeppe Vinkel Beier <jeppevinkel@gmail.com> (https://jeppdev.com/)",
+  "repository": "https://github.com/jeppevinkel/openvr2ws-client",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.12.11",
