@@ -1,7 +1,13 @@
 import {toSha256} from './utils/encrypting';
 import Event from './utils/event';
-import {WebSocket} from "isomorphic-ws";
+import {WebSocket} from 'isomorphic-ws';
+import assert from 'node:assert';
 // import WebSocket from 'ws';
+import * as crypto from 'node:crypto';
+import {RequestKeyEnum} from './enums/requestKeyEnum';
+import {CumulativeStatsResponse, Response} from './types';
+import {ResponseTypeEnum} from './enums/responseTypeEnum';
+import {ResponseKeyEnum} from './enums/responseKeyEnum';
 
 export type OpenVR2WSConfig = {
     host: string
@@ -18,6 +24,7 @@ export class OpenVR2WS {
     private _password?: string;
     private _socket?: WebSocket;
     private _connected: boolean = false;
+    private _requests = new Map<string, (value: any) => void>();
 
     constructor(config: OpenVR2WSConfig = {host: '127.0.0.1', port: 7708}) {
         this._config = config;
@@ -37,11 +44,13 @@ export class OpenVR2WS {
             this._connected = false;
             this._onStatus.trigger(false);
         };
+        this._socket.onmessage = this.handleMessage.bind(this);
     }
 
     // Events
     private readonly _onStatus = new Event<boolean>();
     private readonly _onAppId = new Event<string>();
+    private readonly _onMessage = new Event<Response>();
 
     public get OnStatus() {
         return this._onStatus.expose();
@@ -49,5 +58,44 @@ export class OpenVR2WS {
 
     public get OnAppId() {
         return this._onAppId.expose();
+    }
+
+    public get OnMessage() {
+        return this._onMessage.expose();
+    }
+
+    public getCumulativeStats() {
+        assert(this._connected && this._socket);
+        this._socket.send(JSON.stringify({
+            Key: RequestKeyEnum.CumulativeStats,
+        }));
+    }
+
+    public async getCumulativeStatsAsync() {
+        assert(this._connected && this._socket);
+        let nonce = crypto.randomUUID();
+
+        this._socket.send(JSON.stringify({
+            Key: RequestKeyEnum.CumulativeStats,
+            Nonce: nonce,
+        }));
+
+        return new Promise<CumulativeStatsResponse>((resolve, reject) => {
+            setTimeout(() => reject('Request timed out.'), 10000);
+            this._requests.set(nonce, resolve);
+        });
+    }
+
+    private handleMessage(event: MessageEvent) {
+        const data = JSON.parse(event.data) as Response;
+        if (data?.Nonce && this._requests.has(data.Nonce)) {
+            const resolve = this._requests.get(data.Nonce);
+            this._requests.delete(data.Nonce);
+
+            resolve!(data);
+            return;
+        }
+
+        this._onMessage.trigger(data);
     }
 }
