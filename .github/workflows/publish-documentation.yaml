@@ -27,6 +27,7 @@ jobs:
           path: docs
 
   publish:
+    needs: [build]
     runs-on: ubuntu-latest
 
     steps:
