@@ -23,10 +23,10 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.12.11",
+    "@types/ws": "^8.5.10",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@types/ws": "^8.5.10",
     "isomorphic-ws": "^5.0.0",
     "ws": "^8.17.0"
   }
