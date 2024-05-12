@@ -1,5 +1,14 @@
 export interface IEvent<T> {
+    /**
+     * Subscribe an event handler to the event
+     * @param handler
+     */
     on(handler: {(data: T): void}): void;
+    /**
+     * Unsubscribe an event handler from the event
+     * @param handler
+     */
+    off(handler: {(data: T): void}): void;
 }
 
 export default class Event<T> implements IEvent<T> {
@@ -9,7 +18,7 @@ export default class Event<T> implements IEvent<T> {
         this.handlers.push(handler);
     }
 
-    public off(handler: { (data?: T): void }) : void {
+    public off(handler: { (data: T): void }) : void {
         this.handlers = this.handlers.filter(h => h !== handler);
     }
 

@@ -2,7 +2,7 @@
 
 ## Installation
 Install through npm.
-```npm
+```bash
 npm install openvr2ws-client
 ```
 

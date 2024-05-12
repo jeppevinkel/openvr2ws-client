@@ -2,12 +2,9 @@ import {toSha256} from './utils/encrypting';
 import Event from './utils/event';
 import {WebSocket} from 'isomorphic-ws';
 import assert from 'node:assert';
-// import WebSocket from 'ws';
 import * as crypto from 'node:crypto';
-import {RequestKeyEnum} from './enums/requestKeyEnum';
+import {RequestKeyEnum} from './enums';
 import {CumulativeStatsResponse, PlayAreaResponse, Response} from './types';
-import {ResponseTypeEnum} from './enums/responseTypeEnum';
-import {ResponseKeyEnum} from './enums/responseKeyEnum';
 
 export type OpenVR2WSConfig = {
     host: string

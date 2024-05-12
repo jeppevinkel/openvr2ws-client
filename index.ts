@@ -1,3 +1,5 @@
-import {OpenVR2WS} from './OpenVR2WS';
+export {OpenVR2WS, OpenVR2WSConfig} from './OpenVR2WS';
 
-export {OpenVR2WS}
+export * from './types';
+export * from './enums';
+export {IEvent} from './utils/event'

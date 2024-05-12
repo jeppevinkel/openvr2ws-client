@@ -1,0 +1,8 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["index.ts"],
+  "excludePrivate": true,
+  "out": "./docs",
+  "plugin": ["typedoc-plugin-extras"],
+  "footerLastModified": true
+}
