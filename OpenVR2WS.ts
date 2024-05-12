@@ -5,7 +5,7 @@ import assert from 'node:assert';
 // import WebSocket from 'ws';
 import * as crypto from 'node:crypto';
 import {RequestKeyEnum} from './enums/requestKeyEnum';
-import {CumulativeStatsResponse, Response} from './types';
+import {CumulativeStatsResponse, PlayAreaResponse, Response} from './types';
 import {ResponseTypeEnum} from './enums/responseTypeEnum';
 import {ResponseKeyEnum} from './enums/responseKeyEnum';
 
@@ -64,26 +64,47 @@ export class OpenVR2WS {
         return this._onMessage.expose();
     }
 
-    public getCumulativeStats() {
-        assert(this._connected && this._socket);
-        this._socket.send(JSON.stringify({
+    // region requests
+
+    public getCumulativeStats(nonce: string | undefined = undefined) {
+        this.sendRequest({
             Key: RequestKeyEnum.CumulativeStats,
-        }));
+            Nonce: nonce
+        });
     }
 
     public async getCumulativeStatsAsync() {
-        assert(this._connected && this._socket);
         let nonce = crypto.randomUUID();
-
-        this._socket.send(JSON.stringify({
-            Key: RequestKeyEnum.CumulativeStats,
-            Nonce: nonce,
-        }));
+        this.getCumulativeStats(nonce);
 
         return new Promise<CumulativeStatsResponse>((resolve, reject) => {
             setTimeout(() => reject('Request timed out.'), 10000);
             this._requests.set(nonce, resolve);
         });
+    }
+
+    public getPlayArea(nonce: string | undefined = undefined) {
+        this.sendRequest({
+            Key: RequestKeyEnum.PlayArea,
+            Nonce: nonce
+        });
+    }
+
+    public async getPlayAreaAsync() {
+        let nonce = crypto.randomUUID();
+        this.getPlayArea(nonce);
+
+        return new Promise<PlayAreaResponse>((resolve, reject) => {
+            setTimeout(() => reject('Request timed out.'), 10000);
+            this._requests.set(nonce, resolve);
+        });
+    }
+
+    // endregion
+
+    private sendRequest(data: object) {
+        assert(this._connected && this._socket, 'WebSocket isn\'t connected');
+        this._socket.send(JSON.stringify(data));
     }
 
     private handleMessage(event: MessageEvent) {
