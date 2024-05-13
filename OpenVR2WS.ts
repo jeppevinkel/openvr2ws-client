@@ -127,6 +127,7 @@ export class OpenVR2WS {
 
     private handleMessage(event: MessageEvent) {
         const data = JSON.parse(event.data) as Response;
+
         if (data?.Nonce && this._requests.has(data.Nonce)) {
             const resolve = this._requests.get(data.Nonce);
             this._requests.delete(data.Nonce);

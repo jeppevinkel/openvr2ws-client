@@ -1,12 +1,14 @@
 import {Response} from './response';
-import {ResponseTypeEnum} from '../enums/responseTypeEnum';
-import {ResponseKeyEnum} from '../enums/responseKeyEnum';
-import {Vec3} from './vec3';
+import {ResponseTypeEnum, ResponseKeyEnum} from '../enums';
 
 /**
  * The structure of an ApplicationInfo response from OpenVR2WS.
  */
 export interface ApplicationInfoResponse extends Response {
-    AppId: string;
-    SessionStart: number;
+    Type: ResponseTypeEnum.Command
+    Key: ResponseKeyEnum.ApplicationInfo
+    Data: {
+        AppId: string;
+        SessionStart: number;
+    }
 }
