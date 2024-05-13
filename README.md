@@ -1,7 +1,9 @@
 # openvr2ws-client
+[![npm (scoped)](https://img.shields.io/npm/v/openvr2ws-client)](https://www.npmjs.com/package/openvr2ws-client)
 
 ## Installation
-Install through npm.
+Use [npm] to install the package.
+
 ```bash
 npm install openvr2ws-client
 ```
@@ -38,3 +40,16 @@ client.init().then(async () => {
     console.log('Ready!');
 });
 ```
+
+## Docs
+
+[https://jeppevinkel.github.io/openvr2ws-client](https://jeppevinkel.github.io/openvr2ws-client/)
+
+## Contributing
+Pull requests are welcome. For design changes, please open an issue to discuss what you would like to change.
+
+## License
+[MIT]
+
+[npm]: https://www.npmjs.com
+[MIT]: https://opensource.org/licenses/MIT
