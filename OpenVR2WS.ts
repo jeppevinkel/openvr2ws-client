@@ -4,7 +4,7 @@ import {WebSocket} from 'isomorphic-ws';
 import assert from 'node:assert';
 import * as crypto from 'node:crypto';
 import {RequestKeyEnum} from './enums';
-import {CumulativeStatsResponse, PlayAreaResponse, Response} from './types';
+import {ApplicationInfoResponse, CumulativeStatsResponse, PlayAreaResponse, Response} from './types';
 
 export type OpenVR2WSConfig = {
     host: string
@@ -97,11 +97,32 @@ export class OpenVR2WS {
         });
     }
 
+    public getApplicationInfo(nonce: string | undefined = undefined) {
+        this.sendRequest({
+            Key: RequestKeyEnum.ApplicationInfo,
+            Nonce: nonce
+        });
+    }
+
+    public async getApplicationInfoAsync() {
+        let nonce = crypto.randomUUID();
+        this.getApplicationInfo(nonce);
+
+        return this.getResponsePromise<ApplicationInfoResponse>(nonce);
+    }
+
     // endregion
 
     private sendRequest(data: object) {
         assert(this._connected && this._socket, 'WebSocket isn\'t connected');
         this._socket.send(JSON.stringify(data));
+    }
+
+    private getResponsePromise<T>(nonce: string) {
+        return new Promise<T>((resolve, reject) => {
+            setTimeout(() => reject('Request timed out.'), 10000);
+            this._requests.set(nonce, resolve);
+        })
     }
 
     private handleMessage(event: MessageEvent) {

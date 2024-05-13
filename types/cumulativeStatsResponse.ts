@@ -6,8 +6,8 @@ import {ResponseKeyEnum} from '../enums/responseKeyEnum';
  * The structure of a CumulativeStats response from OpenVR2WS.
  */
 export interface CumulativeStatsResponse extends Response {
-    Type: ResponseTypeEnum.Command
-    Key: ResponseKeyEnum.CumulativeStats
+    Type: ResponseTypeEnum.Command;
+    Key: ResponseKeyEnum.CumulativeStats;
     Data: {
         SystemTimeMs: number
         FramesPresented: number
@@ -15,5 +15,5 @@ export interface CumulativeStatsResponse extends Response {
         FramesReprojected: number
         FramesLoading: number
         FramesTimedOut: number
-    }
+    };
 }
