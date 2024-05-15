@@ -3,8 +3,8 @@ import Event from './utils/event';
 import {WebSocket} from 'isomorphic-ws';
 import assert from 'node:assert';
 import * as crypto from 'node:crypto';
-import {RequestKeyEnum} from './enums';
-import {ApplicationInfoResponse, CumulativeStatsResponse, PlayAreaResponse, Response} from './types';
+import {InputSourceEnum, RequestKeyEnum, ResponseKeyEnum, TrackedDeviceClassEnum} from './enums';
+import {ApplicationInfoResponse, CumulativeStatsResponse, DeviceIdsResponse, PlayAreaResponse, Response} from './types';
 
 export type OpenVR2WSConfig = {
     host: string
@@ -21,7 +21,7 @@ export class OpenVR2WS {
     private _password?: string;
     private _socket?: WebSocket;
     private _connected: boolean = false;
-    private _requests = new Map<string, (value: any) => void>();
+    private _requests = new Map<string, { resolve: (value: any) => void, transformer: (response: Response) => Response }>();
 
     constructor(config: OpenVR2WSConfig = {host: '127.0.0.1', port: 7708}) {
         this._config = config;
@@ -74,10 +74,7 @@ export class OpenVR2WS {
         let nonce = crypto.randomUUID();
         this.getCumulativeStats(nonce);
 
-        return new Promise<CumulativeStatsResponse>((resolve, reject) => {
-            setTimeout(() => reject('Request timed out.'), 10000);
-            this._requests.set(nonce, resolve);
-        });
+        return this.getResponsePromise<CumulativeStatsResponse>(nonce);
     }
 
     public getPlayArea(nonce: string | undefined = undefined) {
@@ -91,10 +88,7 @@ export class OpenVR2WS {
         let nonce = crypto.randomUUID();
         this.getPlayArea(nonce);
 
-        return new Promise<PlayAreaResponse>((resolve, reject) => {
-            setTimeout(() => reject('Request timed out.'), 10000);
-            this._requests.set(nonce, resolve);
-        });
+        return this.getResponsePromise<PlayAreaResponse>(nonce);
     }
 
     public getApplicationInfo(nonce: string | undefined = undefined) {
@@ -111,6 +105,24 @@ export class OpenVR2WS {
         return this.getResponsePromise<ApplicationInfoResponse>(nonce);
     }
 
+    public getDeviceIds(nonce: string | undefined = undefined) {
+        this.sendRequest({
+            Key: RequestKeyEnum.DeviceIds,
+            Nonce: nonce
+        });
+    }
+
+    public async getDeviceIdsAsync() {
+        let nonce = crypto.randomUUID();
+        this.getDeviceIds(nonce);
+
+        return this.getResponsePromise<DeviceIdsResponse>(nonce, (response) => {
+            // data.
+
+            return response;
+        });
+    }
+
     // endregion
 
     private sendRequest(data: object) {
@@ -118,21 +130,48 @@ export class OpenVR2WS {
         this._socket.send(JSON.stringify(data));
     }
 
-    private getResponsePromise<T>(nonce: string) {
+    private getResponsePromise<T>(nonce: string, transformer: (response: Response) => Response = response => response) {
         return new Promise<T>((resolve, reject) => {
             setTimeout(() => reject('Request timed out.'), 10000);
-            this._requests.set(nonce, resolve);
-        })
+            this._requests.set(nonce, {
+                resolve,
+                transformer
+            });
+        });
     }
 
     private handleMessage(event: MessageEvent) {
-        const data = JSON.parse(event.data) as Response;
+        let data = JSON.parse(event.data) as Response;
 
         if (data?.Nonce && this._requests.has(data.Nonce)) {
-            const resolve = this._requests.get(data.Nonce);
+            const request = this._requests.get(data.Nonce);
             this._requests.delete(data.Nonce);
 
-            resolve!(data);
+            switch (data.Key) {
+                case ResponseKeyEnum.DeviceIds:
+                    let sourceToIndex = (data as {Data: {SourceToIndex: {[key: string]: number}}}).Data.SourceToIndex;
+                    let sourceToIndexMap: Map<InputSourceEnum, number> = new Map();
+
+                    Object.keys(sourceToIndex).forEach((key: string) => {
+                        sourceToIndexMap.set(InputSourceEnum[key as keyof typeof InputSourceEnum], sourceToIndex[key]);
+                    });
+
+                    (data as DeviceIdsResponse).Data.SourceToIndex = sourceToIndexMap;
+
+                    let deviceToIndex = (data as {Data: {DeviceToIndex: {[key: string]: number[]}}}).Data.DeviceToIndex;
+                    let deviceToIndexMap: Map<TrackedDeviceClassEnum, Set<number>> = new Map();
+
+                    Object.keys(deviceToIndex).forEach((key: string) => {
+                        deviceToIndexMap.set(TrackedDeviceClassEnum[key as keyof typeof TrackedDeviceClassEnum], new Set(deviceToIndex[key]));
+                    });
+
+                    (data as DeviceIdsResponse).Data.SourceToIndex = sourceToIndexMap;
+                    (data as DeviceIdsResponse).Data.DeviceToIndex = deviceToIndexMap;
+                    break;
+            }
+
+            // data = request!.transformer(data);
+            request!.resolve(data);
             return;
         }
 

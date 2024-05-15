@@ -1,4 +1,5 @@
 import {OpenVR2WS} from './OpenVR2WS';
+import {InputSourceEnum} from './enums';
 
 const client = new OpenVR2WS();
 
@@ -29,6 +30,24 @@ client.OnStatus.on(async (status) => {
             },
             Nonce: applicationInfo.Nonce
         });
+    } catch (e) {
+        console.error(e);
+    }
+
+    try {
+        const deviceIds = await client.getDeviceIdsAsync();
+        console.log('deviceIds', {
+            Type: deviceIds.Type,
+            Key: deviceIds.Key,
+            Message: deviceIds.Message,
+            Data: {
+                DeviceToIndex: deviceIds.Data.DeviceToIndex,
+                SourceToIndex: deviceIds.Data.SourceToIndex
+            },
+            Nonce: deviceIds.Nonce
+        });
+
+        console.log('hasHead', deviceIds.Data.SourceToIndex.has(InputSourceEnum.Head));
     } catch (e) {
         console.error(e);
     }
